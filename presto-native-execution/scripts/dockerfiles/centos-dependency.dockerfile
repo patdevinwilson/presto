@@ -22,7 +22,7 @@ COPY velox/scripts /velox/scripts
 # Copy extra script called during setup.
 # from https://github.com/facebookincubator/velox/pull/14016
 COPY velox/CMake/resolve_dependency_modules/arrow/cmake-compatibility.patch /velox
-ENV VELOX_ARROW_CMAKE_PATCH=/velox/cmake-compatibility.patch
+ENV VELOX_ARROW_CMAKE_PATCH="SKIP_PATCH"
 RUN bash -c "mkdir build && \
     (cd build && ../scripts/setup-centos.sh && \
                  ../scripts/setup-adapters.sh && \

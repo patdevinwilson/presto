@@ -89,6 +89,10 @@ std::string SystemTableHandle::toString() const {
   return fmt::format("schema: {} table: {}", schemaName_, tableName_);
 }
 
+const std::string& SystemTableHandle::name() const {
+  return name_;
+}
+
 SystemDataSource::SystemDataSource(
     const RowTypePtr& outputType,
     const connector::ConnectorTableHandlePtr& tableHandle,

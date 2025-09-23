@@ -23,6 +23,10 @@
 
 #include "presto_cpp/main/types/PrestoTaskId.h"
 #include "presto_cpp/main/types/PrestoToVeloxExpr.h"
+
+#include "velox/core/PlanNode.h"
+
+#include "velox/core/PlanNode.h"
 #include "presto_cpp/main/types/TypeParser.h"
 
 namespace facebook::presto {
@@ -209,7 +213,8 @@ class VeloxQueryPlanConverterBase {
   velox::VectorPtr evaluateConstantExpression(
       const velox::core::TypedExprPtr& expression);
 
-  std::optional<velox::core::ColumnStatsSpec> toColumnStatsSpec(
+
+  velox::core::PlanNodePtr generateAggregationNode(
       const std::shared_ptr<protocol::StatisticAggregations>&
           statisticsAggregation,
       velox::core::AggregationNode::Step step,
@@ -303,3 +308,4 @@ void parseIndexLookupCondition(
     bool acceptConstant,
     std::vector<velox::core::IndexLookupConditionPtr>& joinConditionPtrs);
 } // namespace facebook::presto
+
