@@ -168,6 +168,14 @@ SystemConfig::SystemConfig() {
           NONE_PROP(kHttpsKeyPath),
           NONE_PROP(kHttpsClientCertAndKeyPath),
           NONE_PROP(kHttpsClientCaFile),
+          // cuDF properties
+          BOOL_PROP(kCudfEnabled, false),
+          BOOL_PROP(kCudfAllowCpuFallback, true),
+          BOOL_PROP(kCudfLogFallback, false),
+          BOOL_PROP(kCudfDebugEnabled, false),
+          BOOL_PROP(kCudfExchangeEnabled, false),
+          BOOL_PROP(kCudfExchangeCompressionEnabled, false),
+          BOOL_PROP(kCudfExchangeUseUcxx, false),
           NONE_PROP(kCudfServerPort),
           NUM_PROP(kExchangeHttpClientNumIoThreadsHwMultiplier, 1.0),
           NUM_PROP(kExchangeHttpClientNumCpuThreadsHwMultiplier, 1.0),
@@ -295,6 +303,35 @@ SystemConfig* SystemConfig::instance() {
 
 int SystemConfig::httpServerHttpPort() const {
   return requiredProperty<int>(kHttpServerHttpPort);
+}
+
+// cuDF configuration implementations
+bool SystemConfig::cudfEnabled() const {
+  return optionalProperty<bool>(kCudfEnabled).value_or(false);
+}
+
+bool SystemConfig::cudfAllowCpuFallback() const {
+  return optionalProperty<bool>(kCudfAllowCpuFallback).value_or(true);
+}
+
+bool SystemConfig::cudfLogFallback() const {
+  return optionalProperty<bool>(kCudfLogFallback).value_or(false);
+}
+
+bool SystemConfig::cudfDebugEnabled() const {
+  return optionalProperty<bool>(kCudfDebugEnabled).value_or(false);
+}
+
+bool SystemConfig::cudfExchangeEnabled() const {
+  return optionalProperty<bool>(kCudfExchangeEnabled).value_or(false);
+}
+
+bool SystemConfig::cudfExchangeCompressionEnabled() const {
+  return optionalProperty<bool>(kCudfExchangeCompressionEnabled).value_or(false);
+}
+
+bool SystemConfig::cudfExchangeUseUcxx() const {
+  return optionalProperty<bool>(kCudfExchangeUseUcxx).value_or(false);
 }
 
 int SystemConfig::cudfServerPort() const {

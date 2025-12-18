@@ -697,6 +697,14 @@ class SystemConfig : public ConfigBase {
   static constexpr std::string_view kHttpClientHttp2SessionWindow{
       "http-client.http2.session-window"};
 
+  // cuDF configuration properties
+  static constexpr std::string_view kCudfEnabled{"cudf.enabled"};
+  static constexpr std::string_view kCudfAllowCpuFallback{"cudf.allow_cpu_fallback"};
+  static constexpr std::string_view kCudfLogFallback{"cudf.log_fallback"};
+  static constexpr std::string_view kCudfDebugEnabled{"cudf.debug_enabled"};
+  static constexpr std::string_view kCudfExchangeEnabled{"cudf.exchange.enabled"};
+  static constexpr std::string_view kCudfExchangeCompressionEnabled{"cudf.exchange.compression.enabled"};
+  static constexpr std::string_view kCudfExchangeUseUcxx{"cudf.exchange.use_ucxx"};
   static constexpr std::string_view kCudfServerPort{"cudf.exchange.server.port"};
 
   static constexpr std::string_view kExchangeMaxErrorDuration{
@@ -857,6 +865,14 @@ class SystemConfig : public ConfigBase {
 
   int httpServerHttpPort() const;
 
+  // cuDF configuration getters
+  bool cudfEnabled() const;
+  bool cudfAllowCpuFallback() const;
+  bool cudfLogFallback() const;
+  bool cudfDebugEnabled() const;
+  bool cudfExchangeEnabled() const;
+  bool cudfExchangeCompressionEnabled() const;
+  bool cudfExchangeUseUcxx() const;
   int cudfServerPort() const;
 
   bool httpServerReusePort() const;
