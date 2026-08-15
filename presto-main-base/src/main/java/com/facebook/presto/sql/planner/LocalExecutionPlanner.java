@@ -2120,7 +2120,8 @@ public class LocalExecutionPlanner
                 Optional<OperatorType> comparisonOperator)
         {
             List<RowExpression> arguments = spatialFunction.getArguments();
-            verify(arguments.size() == 2);
+            // Binary spatial predicates: 2 args. ST_KNN: 3 or 4 (geoms + k [, spheroid]).
+            verify(arguments.size() == 2 || arguments.size() == 3 || arguments.size() == 4);
 
             if (!(arguments.get(0) instanceof VariableReferenceExpression) || !(arguments.get(1) instanceof VariableReferenceExpression)) {
                 return Optional.empty();

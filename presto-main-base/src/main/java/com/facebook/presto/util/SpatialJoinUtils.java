@@ -53,9 +53,11 @@ public class SpatialJoinUtils
     public static final QualifiedObjectName ST_TOUCHES = QualifiedObjectName.valueOf(JAVA_BUILTIN_NAMESPACE, "st_touches");
     public static final QualifiedObjectName ST_WITHIN = QualifiedObjectName.valueOf(JAVA_BUILTIN_NAMESPACE, "st_within");
     public static final QualifiedObjectName ST_DISTANCE = QualifiedObjectName.valueOf(JAVA_BUILTIN_NAMESPACE, "st_distance");
+    /// Sedona-style k-NN join predicate (probe, build, k [, use_spheroid]).
+    public static final QualifiedObjectName ST_KNN = QualifiedObjectName.valueOf(JAVA_BUILTIN_NAMESPACE, "st_knn");
 
     private static final Set<String> ALLOWED_SPATIAL_JOIN_FUNCTIONS = Stream.of(
-            ST_CONTAINS, ST_CROSSES, ST_EQUALS, ST_INTERSECTS, ST_OVERLAPS, ST_TOUCHES, ST_WITHIN)
+            ST_CONTAINS, ST_CROSSES, ST_EQUALS, ST_INTERSECTS, ST_OVERLAPS, ST_TOUCHES, ST_WITHIN, ST_KNN)
             .map(QualifiedObjectName::getObjectName)
             .map(String::toLowerCase)
             .collect(Collectors.toSet());

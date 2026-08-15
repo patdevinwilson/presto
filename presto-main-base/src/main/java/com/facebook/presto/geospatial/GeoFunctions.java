@@ -108,6 +108,7 @@ import static com.facebook.presto.geospatial.serde.JtsGeometrySerde.serialize;
 import static com.facebook.presto.geospatial.type.GeometryType.GEOMETRY;
 import static com.facebook.presto.geospatial.type.GeometryType.GEOMETRY_TYPE_NAME;
 import static com.facebook.presto.spi.StandardErrorCode.INVALID_FUNCTION_ARGUMENT;
+import static com.facebook.presto.spi.StandardErrorCode.NOT_SUPPORTED;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static io.airlift.slice.Slices.utf8Slice;
@@ -1098,6 +1099,32 @@ public final class GeoFunctions
         OGCGeometry rightGeometry = EsriGeometrySerde.deserialize(right);
         verifySameSpatialReference(leftGeometry, rightGeometry);
         return leftGeometry.intersects(rightGeometry);
+    }
+
+    @Description("Join predicate: for each left geometry, match the k nearest right geometries (Euclidean). " +
+            "Only supported as a native GPU nested-loop / spatial join condition; not for row-wise evaluation.")
+    @ScalarFunction("ST_KNN")
+    @SqlType(BOOLEAN)
+    public static boolean stKnn(
+            @SqlType(GEOMETRY_TYPE_NAME) Slice left,
+            @SqlType(GEOMETRY_TYPE_NAME) Slice right,
+            @SqlType(INTEGER) long k,
+            @SqlType(BOOLEAN) boolean useSpheroid)
+    {
+        throw new PrestoException(
+                NOT_SUPPORTED,
+                "ST_KNN is only supported as a native GPU join predicate (use_spheroid=false)");
+    }
+
+    @Description("Join predicate: for each left geometry, match the k nearest right geometries (Euclidean).")
+    @ScalarFunction("ST_KNN")
+    @SqlType(BOOLEAN)
+    public static boolean stKnn(
+            @SqlType(GEOMETRY_TYPE_NAME) Slice left,
+            @SqlType(GEOMETRY_TYPE_NAME) Slice right,
+            @SqlType(INTEGER) long k)
+    {
+        return stKnn(left, right, k, false);
     }
 
     @SqlNullable

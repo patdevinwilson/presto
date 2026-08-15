@@ -102,6 +102,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.MoreCollectors.onlyElement;
 import static io.airlift.slice.Slices.utf8Slice;
 import static java.lang.String.format;
+import static java.util.Locale.ENGLISH;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -431,7 +432,14 @@ public class ExtractSpatialJoins
         FunctionAndTypeManager functionAndTypeManager = metadata.getFunctionAndTypeManager();
 
         List<RowExpression> arguments = spatialFunction.getArguments();
-        verify(arguments.size() == 2);
+        // Binary predicates (ST_Within, ...) take 2 args; ST_KNN takes 3 or 4
+        // (geometries + k [, use_spheroid]). Side binding uses only the first two.
+        verify(arguments.size() == 2 || arguments.size() == 3 || arguments.size() == 4);
+        if (arguments.size() > 2) {
+            String name = functionAndTypeManager.getFunctionMetadata(spatialFunction.getFunctionHandle())
+                    .getName().getObjectName().toLowerCase(ENGLISH);
+            verify(name.equals("st_knn"), "Only ST_KNN may have more than 2 spatial-join arguments");
+        }
 
         RowExpression firstArgument = arguments.get(0);
         RowExpression secondArgument = arguments.get(1);
@@ -510,7 +518,14 @@ public class ExtractSpatialJoins
             }
         }
 
-        CallExpression newSpatialFunction = new CallExpression(spatialFunction.getSourceLocation(), spatialFunction.getDisplayName(), spatialFunction.getFunctionHandle(), spatialFunction.getType(), ImmutableList.of(newFirstArgument, newSecondArgument));
+        ImmutableList.Builder<RowExpression> newArguments = ImmutableList.builder();
+        newArguments.add(newFirstArgument);
+        newArguments.add(newSecondArgument);
+        // Preserve ST_KNN k / use_spheroid constants (args 2+).
+        for (int i = 2; i < arguments.size(); i++) {
+            newArguments.add(arguments.get(i));
+        }
+        CallExpression newSpatialFunction = new CallExpression(spatialFunction.getSourceLocation(), spatialFunction.getDisplayName(), spatialFunction.getFunctionHandle(), spatialFunction.getType(), newArguments.build());
         RowExpression newFilter = RowExpressionNodeInliner.replaceExpression(filter, ImmutableMap.of(spatialFunction, newSpatialFunction));
 
         return Result.ofPlanNode(new SpatialJoinNode(
