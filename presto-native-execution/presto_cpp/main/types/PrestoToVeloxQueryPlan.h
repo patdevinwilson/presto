@@ -53,6 +53,9 @@ class VeloxQueryPlanConverterBase {
       const protocol::TaskId& taskId);
 
  protected:
+  decltype(velox::core::PlanFragment{}.inputTransportTypes)
+      inputTransportTypes_;
+
   virtual velox::core::PlanNodePtr toVeloxQueryPlan(
       const std::shared_ptr<const protocol::RemoteSourceNode>& node,
       const std::shared_ptr<protocol::TableWriteInfo>& tableWriteInfo,

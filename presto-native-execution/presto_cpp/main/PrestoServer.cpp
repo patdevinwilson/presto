@@ -213,6 +213,31 @@ void unregisterVeloxCudf() {
 #endif
 }
 
+void startUcxExchange(int32_t httpPort) {
+#ifdef PRESTO_ENABLE_CUDF
+  if (!velox::cudf_velox::CudfConfig::getInstance().exchange) {
+    return;
+  }
+  constexpr int32_t kUcxPortOffset = 3;
+  VELOX_USER_CHECK_LE(
+      httpPort,
+      std::numeric_limits<uint16_t>::max() - kUcxPortOffset,
+      "HTTP port is too high to derive the UCX exchange port");
+  velox::cudf_velox::startUcxExchange(
+      static_cast<uint16_t>(httpPort + kUcxPortOffset));
+  PRESTO_STARTUP_LOG(INFO)
+      << "UCX GPU exchange is listening on port "
+      << httpPort + kUcxPortOffset;
+#endif
+}
+
+void stopUcxExchange() {
+#ifdef PRESTO_ENABLE_CUDF
+  velox::cudf_velox::stopUcxExchange();
+  PRESTO_SHUTDOWN_LOG(INFO) << "UCX GPU exchange stopped.";
+#endif
+}
+
 json::array_t getOptimizedExpressions(
     const proxygen::HTTPHeaders& httpHeaders,
     const std::vector<std::unique_ptr<folly::IOBuf>>& body,
@@ -304,6 +329,9 @@ void PrestoServer::run() {
   // We need to register cuDF before the connectors so that the cuDF connector
   // factories can be used.
   registerVeloxCudf();
+#ifdef PRESTO_ENABLE_CUDF
+  startUcxExchange(httpPort_);
+#endif
 
   // Register Presto connector factories and connectors
   registerConnectors();
@@ -909,6 +937,9 @@ void PrestoServer::shutdownServer() {
   taskResource_.reset();
   PRESTO_SHUTDOWN_LOG(INFO) << "Destroying Task Manager";
   taskManager_.reset();
+#ifdef PRESTO_ENABLE_CUDF
+  stopUcxExchange();
+#endif
   PRESTO_SHUTDOWN_LOG(INFO) << "Destroying HTTP Server";
   httpServer_.reset();
 

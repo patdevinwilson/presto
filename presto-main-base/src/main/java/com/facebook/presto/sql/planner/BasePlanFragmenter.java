@@ -384,17 +384,22 @@ public abstract class BasePlanFragmenter
         setDistributionForExchange(exchange.getType(), partitioningScheme, context);
 
         // Use ANY (e.g. UCX) for worker-to-worker exchanges, but fall back to
-        // HTTP when a child fragment runs on the coordinator (which only speaks HTTP).
+        // HTTP when either side of the exchange runs on the coordinator (which
+        // only speaks HTTP). The consuming fragment matters as much as the
+        // producing one: a coordinator-only consumer such as TableFinish reads
+        // its input from the child's HTTP output buffer, so a child annotated
+        // ANY would publish to a transport the coordinator never reads.
         TransportType transportType = TransportType.HTTP;
         boolean anyChildOnCoordinator = exchange.getSources().stream()
                 .anyMatch(PlannerUtils::containsCoordinatorOnlyNode);
-        if (!anyChildOnCoordinator) {
+        boolean consumerOnCoordinator = context.get().hasCoordinatorOnlyDistribution();
+        if (!anyChildOnCoordinator && !consumerOnCoordinator) {
             transportType = TransportType.ANY;
         }
-        log.debug("[ANY_EXCHANGE] exchange=%s transport=%s partitioning=%s",
+        log.debug("[ANY_EXCHANGE] exchange=%s transport=%s consumerOnCoordinator=%s",
                 exchange.getId(),
                 transportType,
-                context.get().getPartitioningHandle());
+                consumerOnCoordinator);
 
         ImmutableList.Builder<SubPlan> builder = ImmutableList.builder();
         for (int sourceIndex = 0; sourceIndex < exchange.getSources().size(); sourceIndex++) {
@@ -694,6 +699,11 @@ public abstract class BasePlanFragmenter
         public PartitioningHandle getPartitioningHandle()
         {
             return partitioningHandle.get();
+        }
+
+        public boolean hasCoordinatorOnlyDistribution()
+        {
+            return partitioningHandle.isPresent() && partitioningHandle.get().isCoordinatorOnly();
         }
 
         public Set<PlanNodeId> getPartitionedSources()
